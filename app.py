@@ -1,6 +1,8 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
+import matplotlib.pyplot as plt
+from datetime import datetime
 
 # Función para obtener los precios de las opciones
 def get_option_prices(ticker, expiration_date):
