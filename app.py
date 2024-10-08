@@ -37,10 +37,12 @@ ticker = st.text_input("Ingrese el ticker de la acción (ej. AAPL):")
 
 if ticker:
     expiration_date = st.date_input("Seleccione la fecha de vencimiento de las opciones:")
+    formatted_date = expiration_date.strftime("%Y-%m-%d")
+    st.write(f"Fecha seleccionada: {formatted_date}")
     
     if st.button("Obtener opciones"):
         try:
-            calls_df, puts_df = get_option_prices(ticker, expiration_date)
+            calls_df, puts_df = get_option_prices(ticker, formatted_date)
             calls_df = calculate_derivative(calls_df, 'call')
             puts_df = calculate_derivative(puts_df, 'put')
 
