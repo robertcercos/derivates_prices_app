@@ -89,14 +89,16 @@ def format_dataframe(df, option_type):
 
 # Function to style and center the "in-the-money prob" column
 def style_and_center(df, stock_price, option_type):
-    if option_type == 'call':
-        styler = df.style.set_properties(subset=['in-the-money prob'], **{'text-align': 'center'}) \
-                      .applymap(lambda x: 'background-color: lightgrey' if x < stock_price else '', subset=['Strike Price (K)'])
-    else:
-        styler = df.style.set_properties(subset=['in-the-money prob'], **{'text-align': 'center'}) \
-                      .applymap(lambda x: 'background-color: lightgrey' if x > stock_price else '', subset=['Strike Price (K)'])
+    # Style and center values in the "in-the-money prob" column
+    styler = df.style.set_properties(subset=['in-the-money prob'], **{'text-align': 'center'})
     
-    # Apply formatting to all columns to ensure 2 decimal places
+    # Highlight ITM rows
+    if option_type == 'call':
+        styler = styler.applymap(lambda x: 'background-color: lightgrey' if x < stock_price else '', subset=['Strike Price (K)'])
+    else:
+        styler = styler.applymap(lambda x: 'background-color: lightgrey' if x > stock_price else '', subset=['Strike Price (K)'])
+    
+    # Format all other columns to 2 decimal places
     styler = styler.format(precision=2)
     
     return styler
@@ -153,7 +155,7 @@ def plot_option_derivatives_minimalist(calls_df, puts_df, stock_price):
 
     # Drop NaN values for smooth plotting
     calls_df = calls_df.dropna(subset=['dC/dK'])
-    puts_df = puts_df.dropna(subset(['dP/dK']))
+    puts_df = puts_df.dropna(subset=['dP/dK'])
 
     # Minimalist style
     plt.style.use('ggplot')
