@@ -61,24 +61,22 @@ def calculate_derivative_strike(df, option_type):
 # Convert dC/dK or dP/dK to in-the-money probability between 0% and 100%
 def calculate_in_the_money_prob(df, option_type):
     if option_type == 'call':
-        df['in-the-money prob'] = (-df['dC/dK'] * 100).clip(0, 100)  # Convert negative dC/dK to positive prob
+        df['in-the-money prob'] = (-df['dC/dK'] * 100).clip(0, 100).round(1).astype(str) + '%'  # Convert negative dC/dK to positive prob and format with %
     else:
-        df['in-the-money prob'] = (df['dP/dK'] * 100).clip(0, 100)  # Convert positive dP/dK to prob
+        df['in-the-money prob'] = (df['dP/dK'] * 100).clip(0, 100).round(1).astype(str) + '%'  # Convert positive dP/dK to prob and format with %
     return df
 
 # Function to format the dataframe to limit decimals
 def format_dataframe(df, option_type):
-    # Round decimals for option prices, bid, ask, and probabilities to 2 decimals
+    # Round decimals for option prices, bid, ask, and probabilities
     if option_type == 'call':
         df['Option Price (C)'] = df['Option Price (C)'].round(2)
         df['Bid'] = df['Bid'].round(2)
         df['Ask'] = df['Ask'].round(2)
-        df['in-the-money prob'] = df['in-the-money prob'].round(2)
     else:
         df['Option Price (P)'] = df['Option Price (P)'].round(2)
         df['Bid'] = df['Bid'].round(2)
         df['Ask'] = df['Ask'].round(2)
-        df['in-the-money prob'] = df['in-the-money prob'].round(2)
     
     # Convert the rest of the columns to integers
     df['Strike Price (K)'] = df['Strike Price (K)'].astype(int)
