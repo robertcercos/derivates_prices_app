@@ -50,22 +50,6 @@ def calculate_derivative_strike(df, option_type):
     df['dC/dK' if option_type == 'call' else 'dP/dK'] = [np.nan] + derivatives
     return df
 
-# Function to calculate derivative with respect to option price
-def calculate_derivative_option(df, option_type):
-    derivatives = []
-    
-    for i in range(len(df) - 1):
-        K_current = df['Strike Price (K)'].iloc[i]
-        K_next = df['Strike Price (K)'].iloc[i + 1]
-        C_current = df['Option Price (C)'].iloc[i] if option_type == 'call' else df['Option Price (P)'].iloc[i]
-        C_next = df['Option Price (C)'].iloc[i + 1] if option_type == 'call' else df['Option Price (P)'].iloc[i + 1]
-        
-        derivative = (K_next - K_current) / (C_next - C_current)
-        derivatives.append(derivative)
-
-    df['dK/dC' if option_type == 'call' else 'dK/dP'] = [np.nan] + derivatives
-    return df
-
 # Function to highlight ITM calls
 def highlight_itm_calls(df, stock_price):
     # In-the-money calls have strike price less than the current stock price
@@ -122,22 +106,25 @@ def plot_real_derivatives_minimalist(calls_df, puts_df, stock_price):
     st.pyplot(plt)
     plt.close()
 
-# Minimalist plot for derivatives with respect to option price, limiting y-axis to -2 to +2
+# Minimalist plot for derivatives with respect to strike price (second plot)
 def plot_option_derivatives_minimalist(calls_df, puts_df, stock_price):
     plt.figure(figsize=(10, 6))
 
     # Drop NaN values for smooth plotting
-    calls_df = calls_df.dropna(subset=['dK/dC'])
-    puts_df = puts_df.dropna(subset=['dK/dP'])
+    calls_df = calls_df.dropna(subset=['dC/dK'])
+    puts_df = puts_df.dropna(subset=['dP/dK'])
 
     # Minimalist style
     plt.style.use('ggplot')
 
     # Plot call derivatives
-    plt.scatter(calls_df['Option Price (C)'], calls_df['dK/dC'], color='#FF9999', marker='o', label='Calls (dK/dC)', alpha=0.7)
+    plt.scatter(calls_df['Strike Price (K)'], calls_df['dC/dK'], color='#FF9999', marker='o', label='Calls (dC/dK)', alpha=0.7)
     
     # Plot put derivatives
-    plt.scatter(puts_df['Option Price (P)'], puts_df['dK/dP'], color='#99CCFF', marker='o', label='Puts (dK/dP)', alpha=0.7)
+    plt.scatter(puts_df['Strike Price (K)'], puts_df['dP/dK'], color='#99CCFF', marker='o', label='Puts (dP/dK)', alpha=0.7)
+
+    # Line for current stock price
+    plt.axvline(x=stock_price, color='#99CC99', linestyle='--', label=f'Current Price: {stock_price:.2f}', lw=2)
 
     # Limit y-axis to -2 and +2
     plt.ylim(-2, 2)
@@ -151,9 +138,9 @@ def plot_option_derivatives_minimalist(calls_df, puts_df, stock_price):
     ax.set_facecolor('white')
 
     # Minimalist labels and title
-    plt.title('Option Derivatives vs Option Price', fontsize=14, fontweight='light')
-    plt.xlabel('Option Price', fontsize=12)
-    plt.ylabel('Derivative (dK/dC and dK/dP)', fontsize=12)
+    plt.title('Option Derivatives vs Strike Price (Second Plot)', fontsize=14, fontweight='light')
+    plt.xlabel('Strike Price', fontsize=12)
+    plt.ylabel('Derivative (dC/dK and dP/dK)', fontsize=12)
 
     # Soft grid
     plt.grid(True, color='gray', alpha=0.3)
@@ -189,8 +176,6 @@ if ticker:
             # Calculate derivatives
             calls_df = calculate_derivative_strike(calls_df, 'call')
             puts_df = calculate_derivative_strike(puts_df, 'put')
-            calls_df = calculate_derivative_option(calls_df, 'call')
-            puts_df = calculate_derivative_option(puts_df, 'put')
 
             # Create tabs for call and put options
             tab1, tab2 = st.tabs(["Call Options", "Put Options"])
@@ -210,7 +195,7 @@ if ticker:
             # Plot derivatives vs strike price
             plot_real_derivatives_minimalist(calls_df, puts_df, stock_price)
 
-            # Plot derivatives vs option price
+            # Plot derivatives vs strike price in second plot
             plot_option_derivatives_minimalist(calls_df, puts_df, stock_price)
 
         except Exception as e:
