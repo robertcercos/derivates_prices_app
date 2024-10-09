@@ -58,12 +58,15 @@ def calculate_derivative_strike(df, option_type):
     df['dC/dK' if option_type == 'call' else 'dP/dK'] = [np.nan] + derivatives
     return df
 
-# Convert dC/dK or dP/dK to in-the-money probability between 0% and 100%
+# Convert dC/dK or dP/dK to in-the-money probability between 0% and 100%, replace NaN with "-"
 def calculate_in_the_money_prob(df, option_type):
     if option_type == 'call':
-        df['in-the-money prob'] = (-df['dC/dK'] * 100).clip(0, 100).round(1).astype(str) + '%'  # Convert negative dC/dK to positive prob and format with %
+        df['in-the-money prob'] = (-df['dC/dK'] * 100).clip(0, 100).round(1).astype(str) + '%'
     else:
-        df['in-the-money prob'] = (df['dP/dK'] * 100).clip(0, 100).round(1).astype(str) + '%'  # Convert positive dP/dK to prob and format with %
+        df['in-the-money prob'] = (df['dP/dK'] * 100).clip(0, 100).round(1).astype(str) + '%'
+
+    # Replace NaN values with "-"
+    df['in-the-money prob'] = df['in-the-money prob'].replace('nan%', '-')
     return df
 
 # Function to format the dataframe to limit decimals
@@ -83,6 +86,10 @@ def format_dataframe(df, option_type):
     df['Volume'] = df['Volume'].astype(int)
     
     return df
+
+# Function to center values in the "in-the-money prob" column
+def center_itm_column(df):
+    return df.style.set_properties(subset=['in-the-money prob'], **{'text-align': 'center'})
 
 # Function to highlight ITM calls
 def highlight_itm_calls(df, stock_price):
@@ -214,19 +221,23 @@ if ticker:
             calls_df = format_dataframe(calls_df, 'call')
             puts_df = format_dataframe(puts_df, 'put')
 
+            # Center the "in-the-money prob" column
+            calls_df_styled = center_itm_column(calls_df)
+            puts_df_styled = center_itm_column(puts_df)
+
             # Create tabs for call and put options
             tab1, tab2 = st.tabs(["Call Options", "Put Options"])
 
             # Display call options in tab1
             with tab1:
                 st.subheader("Call Option Prices")
-                styled_calls_df = highlight_itm_calls(calls_df, stock_price)
+                styled_calls_df = highlight_itm_calls(calls_df_styled, stock_price)
                 st.table(styled_calls_df)
 
             # Display put options in tab2
             with tab2:
                 st.subheader("Put Option Prices")
-                styled_puts_df = highlight_itm_puts(puts_df, stock_price)
+                styled_puts_df = highlight_itm_puts(puts_df_styled, stock_price)
                 st.table(styled_puts_df)
 
             # Plot derivatives vs strike price
