@@ -20,19 +20,27 @@ def get_option_prices(ticker, expiration_date):
     
     return calls, puts
 
-# Function to filter options within 50% of stock price and limit option price to 30% of stock price
+# Function to filter options within 50% of stock price, limit option price to 30% of stock price, and remove low volume rows
 def filter_options(df, stock_price):
     lower_bound = stock_price * 0.5
     upper_bound = stock_price * 1.5
     option_price_limit = stock_price * 0.3  # Limit option prices to 30% of the stock price
+    
+    # Filter options within 50% of stock price and option price <= 30% of stock price
     if 'Option Price (C)' in df.columns:
-        return df[(df['Strike Price (K)'] >= lower_bound) & 
-                  (df['Strike Price (K)'] <= upper_bound) & 
-                  (df['Option Price (C)'] <= option_price_limit)]
+        df = df[(df['Strike Price (K)'] >= lower_bound) & 
+                (df['Strike Price (K)'] <= upper_bound) & 
+                (df['Option Price (C)'] <= option_price_limit)]
     else:
-        return df[(df['Strike Price (K)'] >= lower_bound) & 
-                  (df['Strike Price (K)'] <= upper_bound) & 
-                  (df['Option Price (P)'] <= option_price_limit)]
+        df = df[(df['Strike Price (K)'] >= lower_bound) & 
+                (df['Strike Price (K)'] <= upper_bound) & 
+                (df['Option Price (P)'] <= option_price_limit)]
+
+    # Remove rows where volume is NaN or less than 5
+    df = df.dropna(subset=['Volume'])
+    df = df[df['Volume'] >= 5]
+    
+    return df
 
 # Function to calculate derivative with respect to strike price
 def calculate_derivative_strike(df, option_type):
@@ -50,14 +58,32 @@ def calculate_derivative_strike(df, option_type):
     df['dC/dK' if option_type == 'call' else 'dP/dK'] = [np.nan] + derivatives
     return df
 
+# Function to format the dataframe to limit decimals
+def format_dataframe(df, option_type):
+    # Round decimals for option prices, bid, ask, and derivatives to 2 decimals
+    if option_type == 'call':
+        df['Option Price (C)'] = df['Option Price (C)'].round(2)
+        df['Bid'] = df['Bid'].round(2)
+        df['Ask'] = df['Ask'].round(2)
+        df['dC/dK'] = df['dC/dK'].round(2)
+    else:
+        df['Option Price (P)'] = df['Option Price (P)'].round(2)
+        df['Bid'] = df['Bid'].round(2)
+        df['Ask'] = df['Ask'].round(2)
+        df['dP/dK'] = df['dP/dK'].round(2)
+    
+    # Convert the rest of the columns to integers
+    df['Strike Price (K)'] = df['Strike Price (K)'].astype(int)
+    df['Volume'] = df['Volume'].astype(int)
+    
+    return df
+
 # Function to highlight ITM calls
 def highlight_itm_calls(df, stock_price):
-    # In-the-money calls have strike price less than the current stock price
     return df.style.applymap(lambda x: 'background-color: lightgrey' if x < stock_price else '', subset=['Strike Price (K)'])
 
 # Function to highlight ITM puts
 def highlight_itm_puts(df, stock_price):
-    # In-the-money puts have strike price greater than the current stock price
     return df.style.applymap(lambda x: 'background-color: lightgrey' if x > stock_price else '', subset=['Strike Price (K)'])
 
 # Minimalist plot for derivatives with respect to strike price, limiting y-axis to -2 to +2
@@ -173,6 +199,10 @@ if ticker:
             # Calculate derivatives
             calls_df = calculate_derivative_strike(calls_df, 'call')
             puts_df = calculate_derivative_strike(puts_df, 'put')
+
+            # Format the dataframes
+            calls_df = format_dataframe(calls_df, 'call')
+            puts_df = format_dataframe(puts_df, 'put')
 
             # Create tabs for call and put options
             tab1, tab2 = st.tabs(["Call Options", "Put Options"])
