@@ -54,10 +54,12 @@ def calculate_derivative_option(df, option_type):
 
 # Función para aplicar el color gris a las filas ITM
 def highlight_itm_calls(df, stock_price):
-    return ['background-color: lightgrey' if row['Strike Price (K)'] < stock_price else '' for idx, row in df.iterrows()]
+    # Las opciones in-the-money para calls son aquellas con strike price menor que el precio actual de la acción
+    return df.style.applymap(lambda x: 'background-color: lightgrey' if x < stock_price else '', subset=['Strike Price (K)'])
 
 def highlight_itm_puts(df, stock_price):
-    return ['background-color: lightgrey' if row['Strike Price (K)'] > stock_price else '' for idx, row in df.iterrows()]
+    # Las opciones in-the-money para puts son aquellas con strike price mayor que el precio actual de la acción
+    return df.style.applymap(lambda x: 'background-color: lightgrey' if x > stock_price else '', subset=['Strike Price (K)'])
 
 # Gráfico minimalista
 def plot_real_derivatives_minimalist(calls_df, puts_df, stock_price):
@@ -166,11 +168,11 @@ if ticker:
             puts_df = calculate_derivative_option(puts_df, 'put')
 
             st.subheader("Precios de Opciones de Compra (Calls)")
-            styled_calls_df = calls_df.style.apply(highlight_itm_calls, stock_price=stock_price, axis=1)
+            styled_calls_df = highlight_itm_calls(calls_df, stock_price)
             st.dataframe(styled_calls_df)  # Mostrar la tabla con formato
 
             st.subheader("Precios de Opciones de Venta (Puts)")
-            styled_puts_df = puts_df.style.apply(highlight_itm_puts, stock_price=stock_price, axis=1)
+            styled_puts_df = highlight_itm_puts(puts_df, stock_price)
             st.dataframe(styled_puts_df)  # Mostrar la tabla con formato
 
             # Graficar los puntos reales respecto al Strike Price en estilo minimalista
@@ -181,3 +183,4 @@ if ticker:
 
         except Exception as e:
             st.error(f"Error: {e}")
+
