@@ -128,7 +128,7 @@ def plot_option_derivatives_minimalist(calls_df, puts_df, stock_price):
 
     # Drop NaN values for smooth plotting
     calls_df = calls_df.dropna(subset=['dK/dC'])
-    puts_df = puts_df.dropna(subset(['dK/dP']))
+    puts_df = puts_df.dropna(subset=['dK/dP'])
 
     # Minimalist style
     plt.style.use('ggplot')
