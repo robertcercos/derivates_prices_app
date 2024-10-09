@@ -87,17 +87,14 @@ def format_dataframe(df, option_type):
     
     return df
 
-# Function to center values in the "in-the-money prob" column
-def center_itm_column(df):
-    return df.style.set_properties(subset=['in-the-money prob'], **{'text-align': 'center'})
-
-# Function to highlight ITM calls
-def highlight_itm_calls(df, stock_price):
-    return df.style.applymap(lambda x: 'background-color: lightgrey' if x < stock_price else '', subset=['Strike Price (K)'])
-
-# Function to highlight ITM puts
-def highlight_itm_puts(df, stock_price):
-    return df.style.applymap(lambda x: 'background-color: lightgrey' if x > stock_price else '', subset=['Strike Price (K)'])
+# Function to style and center the "in-the-money prob" column
+def style_and_center(df, stock_price, option_type):
+    if option_type == 'call':
+        return df.style.set_properties(subset=['in-the-money prob'], **{'text-align': 'center'}) \
+                      .applymap(lambda x: 'background-color: lightgrey' if x < stock_price else '', subset=['Strike Price (K)'])
+    else:
+        return df.style.set_properties(subset=['in-the-money prob'], **{'text-align': 'center'}) \
+                      .applymap(lambda x: 'background-color: lightgrey' if x > stock_price else '', subset=['Strike Price (K)'])
 
 # Minimalist plot for derivatives with respect to strike price, limiting y-axis to -2 to +2
 def plot_real_derivatives_minimalist(calls_df, puts_df, stock_price):
@@ -221,9 +218,9 @@ if ticker:
             calls_df = format_dataframe(calls_df, 'call')
             puts_df = format_dataframe(puts_df, 'put')
 
-            # Center the "in-the-money prob" column
-            calls_df_styled = center_itm_column(calls_df)
-            puts_df_styled = center_itm_column(puts_df)
+            # Style and center the "in-the-money prob" column
+            calls_df_styled = style_and_center(calls_df, stock_price, 'call')
+            puts_df_styled = style_and_center(puts_df, stock_price, 'put')
 
             # Create tabs for call and put options
             tab1, tab2 = st.tabs(["Call Options", "Put Options"])
@@ -231,14 +228,12 @@ if ticker:
             # Display call options in tab1
             with tab1:
                 st.subheader("Call Option Prices")
-                styled_calls_df = highlight_itm_calls(calls_df_styled, stock_price)
-                st.table(styled_calls_df)
+                st.table(calls_df_styled)
 
             # Display put options in tab2
             with tab2:
                 st.subheader("Put Option Prices")
-                styled_puts_df = highlight_itm_puts(puts_df_styled, stock_price)
-                st.table(styled_puts_df)
+                st.table(puts_df_styled)
 
             # Plot derivatives vs strike price
             plot_real_derivatives_minimalist(calls_df, puts_df, stock_price)
