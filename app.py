@@ -2,18 +2,24 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
+from scipy.interpolate import interp1d
 from datetime import datetime
+import numpy as np
 
 # Función para obtener los precios de las opciones
 def get_option_prices(ticker, expiration_date):
     stock = yf.Ticker(ticker)
     options_chain = stock.option_chain(expiration_date)
+
+    # Obtener datos de calls
+    calls = options_chain.calls[['strike', 'lastPrice', 'bid', 'ask', 'volume']]
+    calls.columns = ['Strike Price (K)', 'Option Price (C)', 'Bid', 'Ask', 'Volume']
     
-    calls = options_chain.calls[['strike', 'lastPrice']]
-    calls.columns = ['Strike Price (K)', 'Option Price (C)']
+    # Obtener datos de puts
+    puts = options_chain.puts[['strike', 'lastPrice', 'bid', 'ask', 'volume']]
+    puts.columns = ['Strike Price (K)', 'Option Price (P)', 'Bid', 'Ask', 'Volume']
     
-    puts = options_chain.puts[['strike', 'lastPrice']]
-    puts.columns = ['Strike Price (K)', 'Option Price (P)']
+
     
     return calls, puts
 
@@ -29,37 +35,53 @@ def calculate_derivative(df, option_type):
         
         derivative = (C_next - C_current) / (K_next - K_current)
         derivatives.append(derivative)
-    
-    df['dC/dK' if option_type == 'call' else 'dP/dK'] = [None] + derivatives
+
+    df['dC/dK' if option_type == 'call' else 'dP/dK'] = [np.nan] + derivatives
     return df
 
-def plot_options(calls_df, puts_df):
-    plt.figure(figsize=(14, 6))
+def plot_interpolated_and_real_derivatives(calls_df, puts_df, stock_price):
+    plt.figure(figsize=(10, 6))
 
-    # Gráfico de calls
-    plt.subplot(1, 2, 1)
-    plt.plot(calls_df['Strike Price (K)'], calls_df['Option Price (C)'], marker='o', label='Calls')
-    plt.plot(calls_df['Strike Price (K)'], calls_df['dC/dK'], marker='x', color='red', label='dC/dK')
-    plt.title('Opciones de Compra (Calls)')
-    plt.xlabel('Precio de Ejercicio (K)')
-    plt.ylabel('Precio de Opción (C) / Derivada')
-    plt.axhline(0, color='black', lw=0.5)
+    # Eliminar los valores nulos o None de las derivadas para la interpolación
+    calls_df = calls_df.dropna(subset=['dC/dK'])
+    puts_df = puts_df.dropna(subset=['dP/dK'])
+
+    # Interpolación para calls (dC/dK)
+    f_calls = interp1d(calls_df['Strike Price (K)'], calls_df['dC/dK'], kind='cubic', fill_value="extrapolate")
+    strike_range_calls = np.linspace(calls_df['Strike Price (K)'].min(), calls_df['Strike Price (K)'].max(), 500)
+    dC_dK_smooth = f_calls(strike_range_calls)
+
+    # Interpolación para puts (dP/dK)
+    f_puts = interp1d(puts_df['Strike Price (K)'], puts_df['dP/dK'], kind='cubic', fill_value="extrapolate")
+    strike_range_puts = np.linspace(puts_df['Strike Price (K)'].min(), puts_df['Strike Price (K)'].max(), 500)
+    dP_dK_smooth = f_puts(strike_range_puts)
+
+    # Graficar los puntos reales de las derivadas de los calls
+    plt.scatter(calls_df['Strike Price (K)'], calls_df['dC/dK'], color='red', marker='o', label='Puntos Reales dC/dK (Calls)')
+    
+    # Graficar la derivada interpolada de las calls
+    plt.plot(strike_range_calls, dC_dK_smooth, color='red', linestyle='--', label='dC/dK (Calls - Interpolado)')
+    
+    # Graficar los puntos reales de las derivadas de los puts
+    plt.scatter(puts_df['Strike Price (K)'], puts_df['dP/dK'], color='blue', marker='o', label='Puntos Reales dP/dK (Puts)')
+    
+    # Graficar la derivada interpolada de las puts
+    plt.plot(strike_range_puts, dP_dK_smooth, color='blue', linestyle='--', label='dP/dK (Puts - Interpolado)')
+    
+    # Línea vertical que indica el precio actual de la acción
+    plt.axvline(x=stock_price, color='green', linestyle='--', label=f'Precio Actual ({stock_price})')
+    
+    # Títulos y leyenda
+    plt.title('Derivada Interpolada y Puntos Reales de los Precios de Opciones respecto al Strike Price')
+    plt.xlabel('Precio de Ejercicio (Strike Price)')
+    plt.ylabel('dC/dK y dP/dK (Interpolado y Real)')
+    plt.axhline(0, color='black', lw=0.5)  # Línea horizontal en y=0
     plt.grid()
     plt.legend()
 
-    # Gráfico de puts
-    plt.subplot(1, 2, 2)
-    plt.plot(puts_df['Strike Price (K)'], puts_df['Option Price (P)'], marker='o', color='orange', label='Puts')
-    plt.plot(puts_df['Strike Price (K)'], puts_df['dP/dK'], marker='x', color='blue', label='dP/dK')
-    plt.title('Opciones de Venta (Puts)')
-    plt.xlabel('Precio de Ejercicio (K)')
-    plt.ylabel('Precio de Opción (P) / Derivada')
-    plt.axhline(0, color='black', lw=0.5)
-    plt.grid()
-    plt.legend()
-
-    plt.tight_layout()
+    # Mostrar el gráfico en Streamlit
     st.pyplot(plt)
+
 
 # Streamlit app
 st.title("Opciones y Derivadas")
@@ -77,15 +99,16 @@ if ticker:
             calls_df, puts_df = get_option_prices(ticker, formatted_date)
             calls_df = calculate_derivative(calls_df, 'call')
             puts_df = calculate_derivative(puts_df, 'put')
-
+            
             st.subheader("Precios de Opciones de Compra (Calls)")
-            st.write(calls_df)
+            st.table(calls_df)  # Mostrar la tabla completa sin scroll
 
             st.subheader("Precios de Opciones de Venta (Puts)")
-            st.write(puts_df)
+            st.table(puts_df)  # Mostrar la tabla completa sin scroll
 
-            # Graficar
-            plot_options(calls_df, puts_df)
+            # Graficar la derivada interpolada con los puntos reales respecto al Strike Price
+            plot_interpolated_and_real_derivatives(calls_df, puts_df, stock_price)
+
 
         except Exception as e:
             st.error(f"Error: {e}")
