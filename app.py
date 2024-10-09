@@ -106,7 +106,7 @@ def plot_real_derivatives_minimalist(calls_df, puts_df, stock_price):
     st.pyplot(plt)
     plt.close()
 
-# Minimalist plot for derivatives with respect to strike price (second plot)
+# Minimalist plot for derivatives with respect to option price, limiting y-axis to -2 to +2
 def plot_option_derivatives_minimalist(calls_df, puts_df, stock_price):
     plt.figure(figsize=(10, 6))
 
@@ -117,14 +117,11 @@ def plot_option_derivatives_minimalist(calls_df, puts_df, stock_price):
     # Minimalist style
     plt.style.use('ggplot')
 
-    # Plot call derivatives
-    plt.scatter(calls_df['Strike Price (K)'], calls_df['dC/dK'], color='#FF9999', marker='o', label='Calls (dC/dK)', alpha=0.7)
+    # Plot call derivatives with respect to option price
+    plt.scatter(calls_df['Option Price (C)'], calls_df['dC/dK'], color='#FF9999', marker='o', label='Calls (dC/dK)', alpha=0.7)
     
-    # Plot put derivatives
-    plt.scatter(puts_df['Strike Price (K)'], puts_df['dP/dK'], color='#99CCFF', marker='o', label='Puts (dP/dK)', alpha=0.7)
-
-    # Line for current stock price
-    plt.axvline(x=stock_price, color='#99CC99', linestyle='--', label=f'Current Price: {stock_price:.2f}', lw=2)
+    # Plot put derivatives with respect to option price
+    plt.scatter(puts_df['Option Price (P)'], puts_df['dP/dK'], color='#99CCFF', marker='o', label='Puts (dP/dK)', alpha=0.7)
 
     # Limit y-axis to -2 and +2
     plt.ylim(-2, 2)
@@ -138,8 +135,8 @@ def plot_option_derivatives_minimalist(calls_df, puts_df, stock_price):
     ax.set_facecolor('white')
 
     # Minimalist labels and title
-    plt.title('Option Derivatives vs Strike Price (Second Plot)', fontsize=14, fontweight='light')
-    plt.xlabel('Strike Price', fontsize=12)
+    plt.title('Option Derivatives vs Option Price', fontsize=14, fontweight='light')
+    plt.xlabel('Option Price', fontsize=12)
     plt.ylabel('Derivative (dC/dK and dP/dK)', fontsize=12)
 
     # Soft grid
@@ -195,7 +192,7 @@ if ticker:
             # Plot derivatives vs strike price
             plot_real_derivatives_minimalist(calls_df, puts_df, stock_price)
 
-            # Plot derivatives vs strike price in second plot
+            # Plot derivatives vs option price
             plot_option_derivatives_minimalist(calls_df, puts_df, stock_price)
 
         except Exception as e:
