@@ -114,7 +114,5 @@ if ticker:
             # Graficar la derivada interpolada con los puntos reales respecto al Strike Price
             plot_interpolated_and_real_derivatives(calls_df, puts_df, stock_price)
 
-    except yf.YFException as yf_error:
-        st.error(f"Error al obtener datos de Yahoo Finance: {yf_error}")
-    except Exception as e:
-        st.error(f"Ocurrió un error inesperado: {e}")
+        except Exception as e:
+            st.error(f"Error: {e}")
