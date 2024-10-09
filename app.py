@@ -20,6 +20,20 @@ def get_option_prices(ticker, expiration_date):
     
     return calls, puts
 
+# Function to filter options within 50% of stock price and limit option price to 30% of stock price
+def filter_options(df, stock_price):
+    lower_bound = stock_price * 0.5
+    upper_bound = stock_price * 1.5
+    option_price_limit = stock_price * 0.3  # Limit option prices to 30% of the stock price
+    if 'Option Price (C)' in df.columns:
+        return df[(df['Strike Price (K)'] >= lower_bound) & 
+                  (df['Strike Price (K)'] <= upper_bound) & 
+                  (df['Option Price (C)'] <= option_price_limit)]
+    else:
+        return df[(df['Strike Price (K)'] >= lower_bound) & 
+                  (df['Strike Price (K)'] <= upper_bound) & 
+                  (df['Option Price (P)'] <= option_price_limit)]
+
 # Function to calculate derivative with respect to strike price
 def calculate_derivative_strike(df, option_type):
     derivatives = []
@@ -62,7 +76,7 @@ def highlight_itm_puts(df, stock_price):
     # In-the-money puts have strike price greater than the current stock price
     return df.style.applymap(lambda x: 'background-color: lightgrey' if x > stock_price else '', subset=['Strike Price (K)'])
 
-# Minimalist plot for derivatives with respect to strike price
+# Minimalist plot for derivatives with respect to strike price, limiting y-axis to -2 to +2
 def plot_real_derivatives_minimalist(calls_df, puts_df, stock_price):
     plt.figure(figsize=(10, 6))
 
@@ -81,6 +95,9 @@ def plot_real_derivatives_minimalist(calls_df, puts_df, stock_price):
 
     # Line for current stock price
     plt.axvline(x=stock_price, color='#99CC99', linestyle='--', label=f'Current Price: {stock_price:.2f}', lw=2)
+
+    # Limit y-axis to -2 and +2
+    plt.ylim(-2, 2)
 
     # Minimalist axis settings
     ax = plt.gca()
@@ -105,13 +122,13 @@ def plot_real_derivatives_minimalist(calls_df, puts_df, stock_price):
     st.pyplot(plt)
     plt.close()
 
-# Minimalist plot for derivatives with respect to option price
+# Minimalist plot for derivatives with respect to option price, limiting y-axis to -2 to +2
 def plot_option_derivatives_minimalist(calls_df, puts_df, stock_price):
     plt.figure(figsize=(10, 6))
 
     # Drop NaN values for smooth plotting
     calls_df = calls_df.dropna(subset=['dK/dC'])
-    puts_df = puts_df.dropna(subset=['dK/dP'])
+    puts_df = puts_df.dropna(subset(['dK/dP']))
 
     # Minimalist style
     plt.style.use('ggplot')
@@ -121,6 +138,9 @@ def plot_option_derivatives_minimalist(calls_df, puts_df, stock_price):
     
     # Plot put derivatives
     plt.scatter(puts_df['Option Price (P)'], puts_df['dK/dP'], color='#99CCFF', marker='o', label='Puts (dK/dP)', alpha=0.7)
+
+    # Limit y-axis to -2 and +2
+    plt.ylim(-2, 2)
 
     # Minimalist axis settings
     ax = plt.gca()
@@ -161,10 +181,14 @@ if ticker:
 
             # Get option prices
             calls_df, puts_df = get_option_prices(ticker, expiration_date)
+
+            # Filter options to be within 50% above and below current stock price, and option price <= 30% of stock price
+            calls_df = filter_options(calls_df, stock_price)
+            puts_df = filter_options(puts_df, stock_price)
+
+            # Calculate derivatives
             calls_df = calculate_derivative_strike(calls_df, 'call')
             puts_df = calculate_derivative_strike(puts_df, 'put')
-
-            # Calculate option derivatives
             calls_df = calculate_derivative_option(calls_df, 'call')
             puts_df = calculate_derivative_option(puts_df, 'put')
 
@@ -175,13 +199,13 @@ if ticker:
             with tab1:
                 st.subheader("Call Option Prices")
                 styled_calls_df = highlight_itm_calls(calls_df, stock_price)
-                st.table(styled_calls_df)  # Use st.table to avoid scroll
+                st.table(styled_calls_df)
 
             # Display put options in tab2
             with tab2:
                 st.subheader("Put Option Prices")
                 styled_puts_df = highlight_itm_puts(puts_df, stock_price)
-                st.table(styled_puts_df)  # Use st.table to avoid scroll
+                st.table(styled_puts_df)
 
             # Plot derivatives vs strike price
             plot_real_derivatives_minimalist(calls_df, puts_df, stock_price)
