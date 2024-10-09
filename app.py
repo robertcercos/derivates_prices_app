@@ -94,12 +94,17 @@ if ticker:
     formatted_date = expiration_date.strftime("%Y-%m-%d")
     st.write(f"Fecha seleccionada: {formatted_date}")
     
-    if st.button("Obtener opciones"):
+    if st.button("Obtener opciones y gráfico interpolado con puntos reales"):
         try:
+            # Obtener el precio actual de la acción
+            stock = yf.Ticker(ticker)
+            stock_price = stock.history(period="1d")['Close'].iloc[0]  # Último precio de cierre
+
+            # Obtener los precios de opciones
             calls_df, puts_df = get_option_prices(ticker, formatted_date)
             calls_df = calculate_derivative(calls_df, 'call')
             puts_df = calculate_derivative(puts_df, 'put')
-            
+
             st.subheader("Precios de Opciones de Compra (Calls)")
             st.table(calls_df)  # Mostrar la tabla completa sin scroll
 
@@ -109,6 +114,7 @@ if ticker:
             # Graficar la derivada interpolada con los puntos reales respecto al Strike Price
             plot_interpolated_and_real_derivatives(calls_df, puts_df, stock_price)
 
-
-        except Exception as e:
-            st.error(f"Error: {e}")
+    except yf.YFException as yf_error:
+        st.error(f"Error al obtener datos de Yahoo Finance: {yf_error}")
+    except Exception as e:
+        st.error(f"Ocurrió un error inesperado: {e}")
