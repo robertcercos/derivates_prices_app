@@ -6,32 +6,37 @@ from datetime import timedelta
 import simulation_utils as sim_utils
 import option_data_utils as opt_utils 
 
-def calculate_strike_probabilities(strike_prices, random_walks, initial_price):
-    probabilities = []
+def calculate_strike_probabilities(option_type, strike_prices, random_walks, initial_price):
     # Loop over each strike price
     for strike in strike_prices:
-        # Count how many paths in the random walks reach or exceed the strike price at any point
-        hits = np.any(random_walks * initial_price >= strike, axis=1)
-        prob = np.mean(hits)  # Probability is the proportion of paths that reach the strike
+        if option_type == "call":
+            # For call: Calculate the probability of the price reaching or exceeding the strike price
+            hits = np.any(random_walks * initial_price >= strike, axis=1)
+            prob = np.mean(hits)  # Probability is the proportion of paths that reach the strike
+        elif option_type == "put":
+            # For put: Calculate the probability of the price falling below the strike price (complement of the call)
+            hits = np.any(random_walks * initial_price <= strike, axis=1)
+            prob = 1 - np.mean(hits)  # 1 - probability of not reaching the strike (put ITM)
+        else:
+            raise ValueError("Invalid option type. Choose 'call' or 'put'.")
+        
         probabilities.append(prob)
     
-    return probabilities
+    # Convert probabilities to percentages with 1 decimal point
+    probabilities = np.array(probabilities) * 100
+    return np.round(probabilities, 1)
 
 # Function to display options data and calculate probabilities for T-Student and Bootstrapping
 def add_probability_columns(calls, puts, random_walks_t_student, random_walks_bootstrap, initial_price):
     # Calculate probabilities for call options
-    calls['ITM T-Student'] = (calculate_strike_probabilities(calls['Strike Price (K)'], random_walks_t_student, initial_price)) * 100
-    calls['ITM T-Student'] = calls['ITM T-Student'].round(1)
-    
-    calls['ITM Bootstrapping'] = (calculate_strike_probabilities(calls['Strike Price (K)'], random_walks_bootstrap, initial_price)) * 100
-    calls['ITM Bootstrapping'] = calls['ITM Bootstrapping'].round(1)
+    calls['ITM T-Student'] = calculate_strike_probabilities('call', calls['Strike Price (K)'], random_walks_t_student, initial_price)
+    calls['ITM Bootstrapping'] = calculate_strike_probabilities('call', calls['Strike Price (K)'], random_walks_bootstrap, initial_price)
+
     
     # Calculate probabilities for put options
-    puts['ITM T-Student'] = (1 - calculate_strike_probabilities(puts['Strike Price (K)'], random_walks_t_student, initial_price)) * 100
-    puts['ITM T-Student'] = puts['ITM T-Student'].round(1)
-    
-    puts['ITM Bootstrapping'] = (1 - calculate_strike_probabilities(puts['Strike Price (K)'], random_walks_bootstrap, initial_price)) * 100
-    puts['ITM Bootstrapping'] = puts['ITM Bootstrapping'].round(1)
+    puts['ITM T-Student'] = calculate_strike_probabilities('put', puts['Strike Price (K)'], random_walks_t_student, initial_price)
+    puts['ITM Bootstrapping'] = calculate_strike_probabilities('put',puts['Strike Price (K)'], random_walks_bootstrap, initial_price)
+
 
     return calls, puts
 
