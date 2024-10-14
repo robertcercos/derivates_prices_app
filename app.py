@@ -113,10 +113,10 @@ def run_app():
 
                 # Plot the random walks for both T-Student and Bootstrapping
                 st.subheader("Random Walks with T-Student Distribution")
-                sim_utils.plot_random_walks(random_walks_t_student, stock_price, ticker, "today", expiration_date, "t-student", p99_t, p1_t)
+                sim_utils.plot_random_walks(random_walks_t_student, stock_price, ticker, "today", expiration_date, "t-student")
     
                 st.subheader("Random Walks with Bootstrapping")
-                sim_utils.plot_random_walks(random_walks_bootstrap, stock_price, ticker, "today", expiration_date, "bootstrap", p99_b, p1_b)
+                sim_utils.plot_random_walks(random_walks_bootstrap, stock_price, ticker, "today", expiration_date, "bootstrap")
     
     
             except Exception as e:
