@@ -12,11 +12,11 @@ def calculate_strike_probabilities(option_type, strike_prices, random_walks, ini
     for strike in strike_prices:
         if option_type == "call":
             # For call: Calculate the probability of the price reaching or exceeding the strike price
-            hits = np.any(random_walks * initial_price >= strike, axis=1)
+            hits = np.mean(random_walks * initial_price >= strike, axis=1)
             prob = np.mean(hits)  # Probability is the proportion of paths that reach the strike
         elif option_type == "put":
             # For put: Calculate the probability of the price falling below the strike price (complement of the call)
-            hits = np.any(random_walks * initial_price <= strike, axis=1)
+            hits = np.mean(random_walks * initial_price <= strike, axis=1)
             prob = np.mean(hits)  # 1 - probability of not reaching the strike (put ITM)
         else:
             raise ValueError("Invalid option type. Choose 'call' or 'put'.")
