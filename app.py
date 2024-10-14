@@ -20,12 +20,18 @@ def calculate_strike_probabilities(strike_prices, random_walks, initial_price):
 # Function to display options data and calculate probabilities for T-Student and Bootstrapping
 def add_probability_columns(calls, puts, random_walks_t_student, random_walks_bootstrap, initial_price):
     # Calculate probabilities for call options
-    calls['ITM T-Student'] = calculate_strike_probabilities(calls['Strike Price (K)'], random_walks_t_student, initial_price)
-    calls['ITM Bootstrapping'] = calculate_strike_probabilities(calls['Strike Price (K)'], random_walks_bootstrap, initial_price)
+    calls['ITM T-Student'] = (calculate_strike_probabilities(calls['Strike Price (K)'], random_walks_t_student, initial_price)) * 100
+    calls['ITM T-Student'] = calls['ITM T-Student'].round(1)
+    
+    calls['ITM Bootstrapping'] = (calculate_strike_probabilities(calls['Strike Price (K)'], random_walks_bootstrap, initial_price)) * 100
+    calls['ITM Bootstrapping'] = calls['ITM Bootstrapping'].round(1)
     
     # Calculate probabilities for put options
-    puts['ITM T-Student'] = calculate_strike_probabilities(puts['Strike Price (K)'], random_walks_t_student, initial_price)
-    puts['ITM Bootstrapping'] = calculate_strike_probabilities(puts['Strike Price (K)'], random_walks_bootstrap, initial_price)
+    puts['ITM T-Student'] = (1 - calculate_strike_probabilities(puts['Strike Price (K)'], random_walks_t_student, initial_price)) * 100
+    puts['ITM T-Student'] = puts['ITM T-Student'].round(1)
+    
+    puts['ITM Bootstrapping'] = (1 - calculate_strike_probabilities(puts['Strike Price (K)'], random_walks_bootstrap, initial_price)) * 100
+    puts['ITM Bootstrapping'] = puts['ITM Bootstrapping'].round(1)
 
     return calls, puts
 
