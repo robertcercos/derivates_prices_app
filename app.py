@@ -35,7 +35,7 @@ def add_probability_columns(calls, puts, random_walks_t_student, random_walks_bo
     
     # Calculate probabilities for put options
     puts['ITM T-Student'] = calculate_strike_probabilities('put', puts['Strike Price (K)'], random_walks_t_student, initial_price)
-    puts['ITM Bootstrapping'] = calculate_strike_probabilities('put',puts['Strike Price (K)'], random_walks_bootstrap, initial_price)
+    puts['ITM Bootstrapping'] = calculate_strike_probabilities('put', puts['Strike Price (K)'], random_walks_bootstrap, initial_price)
 
 
     return calls, puts
