@@ -107,12 +107,16 @@ def run_app():
                 # Plot derivatives vs option price
                 opt_utils.plot_option_derivatives_minimalist(calls_df, puts_df, stock_price)
 
+                st.subheader(f"Fitted T-Student Distribution for Daily Returns of {ticker}")
+                sim_utils.plot_fitted_distribution(df, t_params, ticker)  # Display the histogram and fitted curve
+
+
                 # Plot the random walks for both T-Student and Bootstrapping
                 st.subheader("Random Walks with T-Student Distribution")
-                sim_utils.plot_random_walks(filtered_walks_t_student, stock_price, ticker, "today", expiration_date, "t-student", p99_t, p1_t)
+                sim_utils.plot_random_walks(random_walks_t_student, stock_price, ticker, "today", expiration_date, "t-student", p99_t, p1_t)
     
                 st.subheader("Random Walks with Bootstrapping")
-                sim_utils.plot_random_walks(filtered_walks_bootstrap, stock_price, ticker, "today", expiration_date, "bootstrap", p99_b, p1_b)
+                sim_utils.plot_random_walks(random_walks_bootstrap, stock_price, ticker, "today", expiration_date, "bootstrap", p99_b, p1_b)
     
     
             except Exception as e:
