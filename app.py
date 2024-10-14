@@ -86,10 +86,10 @@ def run_app():
                 random_walks_bootstrap = sim_utils.simulate_random_walks(empirical_returns=df['Daily Return'].dropna().values, technique="bootstrap", days=days_to_expiration)
     
                 # Calculate ITM probabilities and add to the DataFrame
-                calls_df['ITM T-Student'] = calculate_strike_probabilities(calls_df['Strike Price (K)'], random_walks_t_student, stock_price)
-                calls_df['ITM Bootstrapping'] = calculate_strike_probabilities(calls_df['Strike Price (K)'], random_walks_bootstrap, stock_price)
-                puts_df['ITM T-Student'] = calculate_strike_probabilities(puts_df['Strike Price (K)'], random_walks_t_student, stock_price)
-                puts_df['ITM Bootstrapping'] = calculate_strike_probabilities(puts_df['Strike Price (K)'], random_walks_bootstrap, stock_price)
+                calls_df['ITM T-Student'] = calculate_strike_probabilities('call', calls_df['Strike Price (K)'], random_walks_t_student, stock_price)
+                calls_df['ITM Bootstrapping'] = calculate_strike_probabilities('call', calls_df['Strike Price (K)'], random_walks_bootstrap, stock_price)
+                puts_df['ITM T-Student'] = calculate_strike_probabilities('put', puts_df['Strike Price (K)'], random_walks_t_student, stock_price)
+                puts_df['ITM Bootstrapping'] = calculate_strike_probabilities('put', puts_df['Strike Price (K)'], random_walks_bootstrap, stock_price)
     
                
     
