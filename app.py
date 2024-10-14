@@ -3,12 +3,6 @@ from datetime import timedelta
 #import simulation_utils as sim_utils
 import option_data_utils as opt_utils
 
-#from simulation_utils import *
-#from option_data_utils import *
-
-# Function to get option prices
-@st.cache_data
-
 def run_app():
     # Streamlit app
     st.title("Options Analysis")
