@@ -7,6 +7,7 @@ import simulation_utils as sim_utils
 import option_data_utils as opt_utils 
 
 def calculate_strike_probabilities(option_type, strike_prices, random_walks, initial_price):
+    probabilities = []  # Initialize an empty list to store the probabilities
     # Loop over each strike price
     for strike in strike_prices:
         if option_type == "call":
