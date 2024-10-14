@@ -2,7 +2,7 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 from datetime import timedelta
-#import simulation_utils as sim_utils
+import simulation_utils as sim_utils
 import option_data_utils as opt_utils
 
 def calculate_strike_probabilities(strike_prices, random_walks, initial_price):
@@ -64,12 +64,12 @@ def run_app():
 
 
                 # Generate random walks with T-Student
-                df = simulation_utils.get_historical_data(ticker)
-                t_params = simulation_utils.fit_t_distribution(df)
-                random_walks_t_student = simulation_utils.simulate_random_walks(t_params=t_params, technique="t-student", days=days_to_expiration)
+                df = sim_utils.get_historical_data(ticker)
+                t_params = sim_utils.fit_t_distribution(df)
+                random_walks_t_student = sim_utils.simulate_random_walks(t_params=t_params, technique="t-student", days=days_to_expiration)
 
                 # Generate random walks with Bootstrapping
-                random_walks_bootstrap = simulation_utils.simulate_random_walks(empirical_returns=df['Daily Return'].dropna().values, technique="bootstrap", days=days_to_expiration)
+                random_walks_bootstrap = sim_utils.simulate_random_walks(empirical_returns=df['Daily Return'].dropna().values, technique="bootstrap", days=days_to_expiration)
     
                 # Calculate ITM probabilities and add to the DataFrame
                 calls_df['ITM T-Student'] = calculate_strike_probabilities(calls_df['Strike Price (K)'], random_walks_t_student, stock_price)
@@ -108,10 +108,10 @@ def run_app():
 
                 # Plot the random walks for both T-Student and Bootstrapping
                 st.subheader("Random Walks with T-Student Distribution")
-                plot_random_walks(filtered_walks_t_student, stock_price, ticker, "today", expiration_date, "t-student", p99_t, p1_t)
+                sim_utils.plot_random_walks(filtered_walks_t_student, stock_price, ticker, "today", expiration_date, "t-student", p99_t, p1_t)
     
                 st.subheader("Random Walks with Bootstrapping")
-                plot_random_walks(filtered_walks_bootstrap, stock_price, ticker, "today", expiration_date, "bootstrap", p99_b, p1_b)
+                sim_utils.plot_random_walks(filtered_walks_bootstrap, stock_price, ticker, "today", expiration_date, "bootstrap", p99_b, p1_b)
     
     
             except Exception as e:
