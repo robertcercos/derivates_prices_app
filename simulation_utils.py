@@ -76,7 +76,7 @@ def plot_fitted_distribution(df, t_params, ticker):
     # Set X-axis label
     ax.set_xlabel("Daily Return", fontsize=12)
     ax.tick_params(axis='x', which='both', bottom=True, labelsize=10)
-
+    st.pyplot(plt)
 
 def simulate_random_walks(t_params=None, empirical_returns=None, technique="t-student", days=252, sims=10000):
     if technique == "t-student":
@@ -185,4 +185,4 @@ def plot_random_walks(random_walks, initial_price, ticker, sim_start_date, sim_e
 
     plt.tight_layout()
     plt.show()
-    
+    st.pyplot(plt)
