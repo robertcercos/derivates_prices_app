@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+@st.cache_data
 def get_option_prices(ticker, expiration_date):
     stock = yf.Ticker(ticker)
     options_chain = stock.option_chain(expiration_date)
