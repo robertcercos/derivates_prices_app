@@ -44,6 +44,7 @@ def run_app():
         if st.button("Get Options and Generate Plots"):
             try:
                 # Get current stock price
+                df = sim_utils.get_historical_data(ticker)
                 stock_price = stock.history(period="1d")['Close'].iloc[0]
                 initial_price = df['Close'].iloc[-1]
                 sim_start_date = pd.to_datetime("today").strftime('%Y-%m-%d')
@@ -67,7 +68,6 @@ def run_app():
 
 
                 # Generate random walks with T-Student
-                df = sim_utils.get_historical_data(ticker)
                 t_params = sim_utils.fit_t_distribution(df)
                 random_walks_t_student = sim_utils.simulate_random_walks(t_params=t_params, technique="t-student", days=days_to_expiration)
 
