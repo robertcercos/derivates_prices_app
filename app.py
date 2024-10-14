@@ -1,4 +1,5 @@
 import streamlit as st
+import yfinance as yf
 from datetime import timedelta
 #import simulation_utils as sim_utils
 import option_data_utils as opt_utils
