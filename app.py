@@ -45,7 +45,7 @@ def run_app():
                 # Get current stock price
                 stock_price = stock.history(period="1d")['Close'].iloc[0]
                 sim_start_date = pd.to_datetime("today").strftime('%Y-%m-%d')
-                days_to_expiration = (expiration_date_dt - today_dt).days
+                days_to_expiration = (expiration_date - sim_start_date).days
     
                 # Get option prices
                 calls_df, puts_df = opt_utils.get_option_prices(ticker, expiration_date)
