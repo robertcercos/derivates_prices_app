@@ -5,6 +5,7 @@ import scipy.stats as stats
 from datetime import timedelta
 
 # Function to get historical stock data and calculate daily returns
+@st.cache_data
 def get_historical_data(ticker):
     stock = yf.Ticker(ticker)
     df = stock.history(period="max")  # Get max available historical data
