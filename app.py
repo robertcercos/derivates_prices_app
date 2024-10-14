@@ -1,9 +1,10 @@
 import streamlit as st
 import yfinance as yf
+import numpy as np
 import pandas as pd
 from datetime import timedelta
 import simulation_utils as sim_utils
-import option_data_utils as opt_utils
+import option_data_utils as opt_utils 
 
 def calculate_strike_probabilities(strike_prices, random_walks, initial_price):
     probabilities = []
