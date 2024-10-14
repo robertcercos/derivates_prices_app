@@ -54,7 +54,7 @@ def run_app():
                 stock_price = stock.history(period="1d")['Close'].iloc[0]
                 initial_price = df['Close'].iloc[-1]
                 sim_start_date = pd.to_datetime("today").strftime('%Y-%m-%d')
-                days_to_expiration = (pd.to_datetime(expiration_date).normalize() - pd.to_datetime("today").normalize() ).days
+                days_to_expiration = 30 #(pd.to_datetime(expiration_date).normalize() - pd.to_datetime("today").normalize() ).days
                 sim_end_date = (pd.to_datetime("today") + timedelta(days=days_to_expiration)).strftime('%Y-%m-%d')
     
                 # Get option prices
