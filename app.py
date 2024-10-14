@@ -45,8 +45,10 @@ def run_app():
             try:
                 # Get current stock price
                 stock_price = stock.history(period="1d")['Close'].iloc[0]
+                initial_price = df['Close'].iloc[-1]
                 sim_start_date = pd.to_datetime("today").strftime('%Y-%m-%d')
                 days_to_expiration = (pd.to_datetime(expiration_date).normalize() - pd.to_datetime("today").normalize() ).days
+                sim_end_date = (pd.to_datetime("today") + timedelta(days=days_to_expiration)).strftime('%Y-%m-%d')
     
                 # Get option prices
                 calls_df, puts_df = opt_utils.get_option_prices(ticker, expiration_date)
@@ -113,10 +115,10 @@ def run_app():
 
                 # Plot the random walks for both T-Student and Bootstrapping
                 st.subheader("Random Walks with T-Student Distribution")
-                sim_utils.plot_random_walks(random_walks_t_student, stock_price, ticker, "today", expiration_date, "t-student")
+                sim_utils.plot_random_walks(random_walks_t_student, initial_price, ticker, sim_start_date, sim_end_date, "t-student")
     
                 st.subheader("Random Walks with Bootstrapping")
-                sim_utils.plot_random_walks(random_walks_bootstrap, stock_price, ticker, "today", expiration_date, "bootstrap")
+                sim_utils.plot_random_walks(random_walks_bootstrap, initial_price, ticker, sim_start_date, sim_end_date, "bootstrap")
     
     
             except Exception as e:
